@@ -29,7 +29,7 @@
  *           the autocompletion data
  *       timer: [integer] milliseconds to wait for more input until
  *           autocompletion will be fetched; if non-null, AC will make the
- *           assumption that setTimeout() exists and words
+ *           assumption that setTimeout() exists and works
  *
  *    member functions:
  *       putData(data, value):
@@ -52,7 +52,7 @@
  *           (facultative)
  *       fetchAutoComplete(ac, value):
  *           called when AC decides to fetch autocompletion data;
- *           should proably always call ac.putData()
+ *           should probably always call ac.putData()
  *       entryValue(ac, entry):
  *       entryName(ac, entry):
  *       entryExtra(ac, entry):
@@ -162,7 +162,7 @@ AC.prototype.displayAc = function(req, cacheid, cached, id) {
 		var subd = document.createElement('div');
 		subd.idnumber = e;
 		subd.setAttribute('id', 'autocomplete_' + this.id + '_' + e);
-		subd.style.padding = '1%%';
+		subd.style.padding = '1%';
 		subd.setAttribute('class', 'autocomplete-inactive');
 		subd.onmouseover = function() { _this.unfocusAc(); _this.curFocus = this.idnumber; _this.focusAc(this.idnumber); }
 		subd.onmousedown = function() { _this.focusAc(this.idnumber); _this.dataFetcher.submit(_this); }
