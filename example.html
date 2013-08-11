@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<script type="text/javascript" src="ac.js"></script>
+		<link rel="stylesheet" href="ac.css" />
+		<script type="text/javascript">/*<![CDATA[*/
+		document.addEventListener('DOMContentLoaded',function() {
+			new AC('example-input', {
+				fetchAutoComplete: function(ac, str) {
+					ac.putData([
+						['Blubb', 3.1415],
+						['BlubbX'],
+						['BlubbX²'],
+					], str);
+				}
+			}, true, 1);
+		});
+		/*]]>*/</script>
+	</head>
+	<body>
+		<div>
+			<label for="example-input">Example input</label>
+			<input type="text" id="example-input" />
+		</div>
+	</body>
+</html>
