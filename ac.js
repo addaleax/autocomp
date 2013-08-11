@@ -37,27 +37,21 @@
  *           of fetchAutoComplete, i. e. the search string
  *           data should be an array of object, with every object
  *           representing one entry.
- *
- *           Default actions if entryValue, entryName, entryExtra are not set:
- *           Each entry is an sub-array of the second parameter.
- *           These sub-arrays have one or two entries, of which
- *           the first is the possible result and the optional
- *           second one describes some associated text, e. g.
- *           the number of entries found for the given search string.
+ * 
+ *           data should be an array of entries, of which each has the
+ *           following format:
+ *            * ['text']
+ *            * ['text', 'extra information']
+ *           or has the methods getEntryName(), getExtra() and getInputTextValue() implemented.
  *
  * fetcher object:
  *    member functions:
  *       submit(ac):
  *           called when the user chose a value (by clicking on it)
  *           (optional)
- *       fetchAutoComplete(ac, values):
+ *       fetchAutoComplete(ac, value):
  *           called when AC decides to fetch autocompletion data;
  *           should probably always call ac.putData().
- *           values should be an array of entries, of which each has the
- *           following format:
- *            * ['text']
- *            * ['text', 'extra information']
- *           or has the methods getEntryName(), getExtra() and getInputTextValue() implemented.
  **/
 
 /**
