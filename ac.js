@@ -199,10 +199,10 @@ ACInputElement.prototype.displayACData = function(s) {
 	d.setAttribute('class', 'autocomplete');
 	
 	var inputRect = this.e.getBoundingClientRect();
-	d.style.position = 'relative';
+	d.style.position = 'absolute';
+	d.style.top = parseInt(inputRect.top) + parseInt(inputRect.height ? inputRect.height : this.e.clientHeight) + 3 + 'px';
+	d.style.left = parseInt(inputRect.left) + 'px';
 	d.style.width = parseInt(inputRect.width ? inputRect.width : this.e.clientWidth) + 'px';
-	d.style.left = parseInt(inputRect.left - 5) + 'px';
-	d.style.top = '0';
 
 	for (var e in s) {
 		var entry = new ACEntry(this, s[e]);
@@ -213,11 +213,7 @@ ACInputElement.prototype.displayACData = function(s) {
 	this.removeACData();
 	this.acPanel = d;
 	
-	var container = this.e.parentNode;
-	if (this.e == container.lastChild)
-		this.e.parentNode.appendChild(d);
-	else
-		this.e.parentNode.insertBefore(d, this.e.nextSibling);
+	document.body.appendChild(d);
 }
 
 ACInputElement.prototype.handleKeyMove = function(up) {
