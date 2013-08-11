@@ -113,8 +113,7 @@ function ACInputElement(id, master, lastonly, minlen, timer) {
 function ACEntry(master, data) {
 	this.master = master;
 	this.data = data;
-	this.e = document.createElement('div');
-	this.e.style.padding = '1%';
+	this.e = document.createElement('li');
 	this.e.setAttribute('class', 'autocomplete-inactive');
 	var _this = this;
 	this.e.addEventListener('mouseover', function() { master.focus(_this); });
@@ -201,16 +200,15 @@ AC.prototype.displayACData = function(req, cacheid, cached, inputElement) {
 
 ACInputElement.prototype.displayACData = function(s) {
 	var _this = this;
+		
+	var d = document.createElement('ul');
+	d.setAttribute('class', 'autocomplete');
 	
 	var inputRect = this.e.getBoundingClientRect();
-	
-	var d = document.createElement('div');
-	d.id = 'autocomplete_' + this.id;
-	d.style.position = 'absolute';
-	d.style.top = parseInt(inputRect.top) + parseInt(inputRect.height ? inputRect.height : this.e.clientHeight) + 3 + 'px';
-	d.style.left = parseInt(inputRect.left) + 'px';
+	d.style.position = 'relative';
 	d.style.width = parseInt(inputRect.width ? inputRect.width : this.e.clientWidth) + 'px';
-	d.setAttribute('class', 'autocomplete');
+	d.style.left = parseInt(inputRect.left - 5) + 'px';
+	d.style.top = '0';
 
 	for (var e in s) {
 		var entry = new ACEntry(this, s[e]);
@@ -219,8 +217,13 @@ ACInputElement.prototype.displayACData = function(s) {
 	}
 	
 	this.removeACData();
-	document.body.appendChild(d);
 	this.acPanel = d;
+	
+	var container = this.e.parentNode;
+	if (this.e == container.lastChild)
+		this.e.parentNode.appendChild(d);
+	else
+		this.e.parentNode.insertBefore(d, this.e.nextSibling);
 }
 
 ACInputElement.prototype.handleKeyMove = function(up) {
