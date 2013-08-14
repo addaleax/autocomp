@@ -47,8 +47,11 @@
  * fetcher object:
  *    member functions:
  *       submit(ac, data):
- *           called when the user chose a value (by clicking on it)
+ *           called when the user chooses a value (by clicking on it)
  *           (optional)
+ *       valuecreate(ac, data, element):
+ *           called when a value entry is created, just before it is inserted
+ *           into the DOM tree, so you can install extra stuff on your own.
  *       fetchAutoComplete(ac, value):
  *           called when AC decides to fetch autocompletion data;
  *           should probably always call ac.putData().
@@ -80,6 +83,7 @@ function AC(id, fetcher, lastonly, minlen, timer) {
 	this.lastWanted = null;
 
 	if (!this.dataFetcher.submit) this.dataFetcher.submit = function() {}
+	if (!this.dataFetcher.valuecreate) this.dataFetcher.valuecreate = function() {}
 }
 
 function ACInputElement(id, master, lastonly, minlen, timer) {
@@ -137,6 +141,8 @@ function ACEntry(master, data) {
 		number.setAttribute('class', 'autocomplete-right');
 		this.e.appendChild(number);
 	}
+	
+	master.master.dataFetcher.valuecreate(master, this.data, this.e);
 }
 
 ACEntry.prototype.unfocus = function() {
@@ -280,6 +286,11 @@ ACInputElement.prototype.handleKey = function(ev) {
 
 ACInputElement.prototype.putData = function(data, s) {
 	this.displayACData(data, s, false, null);
+}
+
+AC.prototype.keyStroke = function() {
+	for (var i = 0; i < this.managedElements.length; ++i)
+		this.managedElements[i].handleKey({which: 20});
 }
 
 }
