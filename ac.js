@@ -132,6 +132,7 @@ function ACInputElement(id, master, lastonly, minlen, timer, throbber, automatch
 		this.throbber = document.createElement('img');
 		this.throbber.style.display = 'none';
 		this.throbber.setAttribute('class', 'autocomplete-throbber');
+		this.throbber.setAttribute('alt', '…');
 		this.throbber.setAttribute('src', throbber);
 		this.inputWrap.appendChild(this.throbber);
 	}
