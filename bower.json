@@ -1,0 +1,25 @@
+{
+  "name": "ac.js",
+  "main": "ac.js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/addaleax/autocomp",
+  "authors": [
+    "sqrt <sqrt@entless.org>"
+  ],
+  "description": "dependency-free HTML input autocomplete",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "autocomplete",
+    "html"
+  ],
+  "license": "LGPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
