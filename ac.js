@@ -33,7 +33,7 @@
  *       throbber: [string] path to an image that indicates loading of data (optional)
  *       automatch: [function/true/null] if non-null, uses a constant list of possible entries.
  *           If a function is given, it should take (data, str) as parameters and return a
- *           similarity value from 0.0 to 1.0. If true, a default comparison function will be used.
+ *           similarity value for sorting. If true, a default comparison function will be used.
  *           In both cases, fetchAutoComplete() will still be called each time.
  *
  *    member functions:
@@ -380,6 +380,13 @@ AC.prototype.defaultSimilarityMeasure = function(data, str) {
 	var a = (data.getEntryName ? data.getEntryName() : data[0]).toUpperCase().split(/\s+/);
 	var b = str.toUpperCase().split(/\s+/);
 	
+	/* remove empty strings from a, b */
+	{
+		var i;
+		while ((i = a.indexOf('')) != -1) a.splice(i, 1);
+		while ((i = b.indexOf('')) != -1) b.splice(i, 1);
+	}
+	
 	/* make sure the similarity matrix has at least as many columns as rows */
 	if (a.length > b.length) {
 		var tmp = a;
@@ -392,11 +399,13 @@ AC.prototype.defaultSimilarityMeasure = function(data, str) {
 	for (var i = 0; i < a.length; ++i) {
 		similarityMatrix[i] = [];
 		
+		// compute log(sqrt(|a|·|b|)) / (dist(a, b)+1))
 		for (var j = 0; j < b.length; ++j)
-			similarityMatrix[i][j] = Math.sqrt(a[i].length * b[j].length) / (levenshtein(a[i], b[j]) + 1.0);
+			similarityMatrix[i][j] = Math.log(a[i].length * b[j].length) / 2
+				- Math.log(levenshtein(a[i], b[j]) + 1.0);
 	}
 	
-	var totalSimilarity = 1.0;
+	var totalSimilarity = 0.0;
 	
 	/* Test for availability of the munkres/hungarian algorithm to find the best similarity assignment */
 	var munkres;
@@ -412,7 +421,7 @@ AC.prototype.defaultSimilarityMeasure = function(data, str) {
 		
 		for (var k = 0; k < indices.length; ++k) {
 			var i = indices[k][0], j = indices[k][1];
-			totalSimilarity *= similarityMatrix[i][j];
+			totalSimilarity += similarityMatrix[i][j];
 		}
 	} else {
 		/* simply pick the available maximum of each row greedily */
@@ -429,7 +438,7 @@ AC.prototype.defaultSimilarityMeasure = function(data, str) {
 			}
 			
 			takenColumns.push(maxColumn);
-			totalSimilarity *= row[maxColumn];
+			totalSimilarity += row[maxColumn];
 		}
 	}
 	
