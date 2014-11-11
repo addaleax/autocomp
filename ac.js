@@ -377,8 +377,11 @@ AC.prototype.defaultSimilarityMeasure = function(data, str) {
 		return matrix[b.length][a.length];
 	};
 	
-	var a = (data.getEntryName ? data.getEntryName() : data[0]).toUpperCase().split(/\s+/);
-	var b = str.toUpperCase().split(/\s+/);
+	var a = (data.getEntryName ? data.getEntryName() : data[0]).toUpperCase().split(/\b/);
+	var b = str.toUpperCase().split(/\b/);
+	
+	for (var i = 0; i < a.length; ++i) a[i] = a[i].trim();
+	for (var i = 0; i < b.length; ++i) b[i] = b[i].trim();
 	
 	/* remove empty strings from a, b */
 	{
