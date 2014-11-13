@@ -73,8 +73,7 @@
  *  - Initial version after some good bunch of untracked development
  */
 
-if (typeof(AC_INCLUDED) == "undefined") { var AC_INCLUDED = 1; 
-"use strict";
+if (typeof(AC_INCLUDED) == "undefined") { "use strict"; var AC_INCLUDED = 1; 
 
 function AC(id, fetcher, lastonly, minlen, timer, throbber, automatch) {
 	this.managedElements = {}; // Element ID -> ACInputElement
@@ -402,10 +401,21 @@ AC.prototype.defaultSimilarityMeasure = function(data, str) {
 	for (var i = 0; i < a.length; ++i) {
 		similarityMatrix[i] = [];
 		
-		// compute log(sqrt(|a|·|b|)) / (dist(a, b)+1))
-		for (var j = 0; j < b.length; ++j)
-			similarityMatrix[i][j] = Math.log(a[i].length * b[j].length) / 2
-				- Math.log(levenshtein(a[i], b[j]) + 1.0);
+		for (var j = 0; j < b.length; ++j) {
+			// compute log(sqrt(|a|·|b|)) / (dist(a, b)+1))
+			function lengthAdjustedLevenshtein(a, b) {
+				return Math.log(a.length * b.length) / 2
+				     - Math.log(levenshtein(a, b) + 1.0);
+			}
+			
+			var fullDistance = lengthAdjustedLevenshtein(a[i], b[j]);
+			
+			// it is quite likely that users entering “pea...” expect
+			// “peace” to appear before “speak”
+			var minlen = Math.min(a[i].length, b[j].length);
+			var prefixDistance = lengthAdjustedLevenshtein(a[i].substr(0, minlen), b[j].substr(0, minlen));
+			similarityMatrix[i][j] = Math.min(fullDistance, prefixDistance);
+		}
 	}
 	
 	var totalSimilarity = 0.0;
