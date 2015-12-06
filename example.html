@@ -2,6 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
+		<script type="text/javascript" src="bower_components/munkres-js/munkres.js"></script>
 		<script type="text/javascript" src="ac.js"></script>
 		
 		<script type="text/javascript" src="wordlist.js"></script>
@@ -19,7 +20,7 @@
 							words.push([wordlist[i][0], parseInt(wordlist[i][1] * 10000)/100 + '%']);
 					ac.putData(words, str);
 				}
-			}, true, 1);
+			}, true, 1, null, null, true);
 		});
 		/*]]>*/</script>
 	</head>

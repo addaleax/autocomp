@@ -33,12 +33,12 @@
  *       throbber: [string] path to an image that indicates loading of data (optional)
  *       automatch: [function/true/null] if non-null, uses a constant list of possible entries.
  *           If a function is given, it should take (data, str) as parameters and return a
- *           similarity value from 0.0 to 1.0. If true, a default comparison function will be used.
+ *           similarity value for sorting. If true, a default comparison function will be used.
  *           In both cases, fetchAutoComplete() will still be called each time.
  *
  *    member functions:
  *       putData(data, value):
- * 	         value should be identical to the second argument
+ *           value should be identical to the second argument
  *           of fetchAutoComplete, i. e. the search string
  *           data should be an array of object, with every object
  *           representing one entry.
@@ -73,8 +73,7 @@
  *  - Initial version after some good bunch of untracked development
  */
 
-if (typeof(AC_INCLUDED) == "undefined") { var AC_INCLUDED = 1; 
-"use strict";
+if (typeof(AC_INCLUDED) == "undefined") { "use strict"; var AC_INCLUDED = 1; 
 
 function AC(id, fetcher, lastonly, minlen, timer, throbber, automatch) {
 	this.managedElements = {}; // Element ID -> ACInputElement
@@ -112,7 +111,7 @@ function ACInputElement(id, master, lastonly, minlen, timer, throbber, automatch
 	this.automatch = automatch;
 	
 	if (this.automatch === true)
-		this.automatch = master.defaultComparison;
+		this.automatch = master.defaultSimilarityMeasure;
 	
 	var _this = this;
 	
@@ -352,7 +351,7 @@ AC.prototype.keyStroke = function() {
 		this.managedElements[i].handleKey({which: 20});
 }
 
-AC.prototype.defaultComparison = function(data, str) {
+AC.prototype.defaultSimilarityMeasure = function(data, str) {
 	var levenshtein = function(a,b) {
 		if (a == b) return 0;
 		if (!a) return b.length;
@@ -375,12 +374,88 @@ AC.prototype.defaultComparison = function(data, str) {
 		}
 		
 		return matrix[b.length][a.length];
-	}	
+	};
 	
-	var a = (data.getEntryName ? data.getEntryName() : data[0]).toUpperCase();
-	var b = str.toUpperCase();
-	var dist = levenshtein(a, b) / a.length;
-	return 1.0/(dist + 1.0);
+	var a = (data.getEntryName ? data.getEntryName() : data[0]).toUpperCase().split(/\b/);
+	var b = str.toUpperCase().split(/\b/);
+	
+	for (var i = 0; i < a.length; ++i) a[i] = a[i].trim();
+	for (var i = 0; i < b.length; ++i) b[i] = b[i].trim();
+	
+	/* remove empty strings from a, b */
+	{
+		var i;
+		while ((i = a.indexOf('')) != -1) a.splice(i, 1);
+		while ((i = b.indexOf('')) != -1) b.splice(i, 1);
+	}
+	
+	/* make sure the similarity matrix has at least as many columns as rows */
+	if (a.length > b.length) {
+		var tmp = a;
+		a = b;
+		b = tmp;
+	}
+	
+	/* compute the similarities between the words and note them in a matrix */
+	var similarityMatrix = [];
+	for (var i = 0; i < a.length; ++i) {
+		similarityMatrix[i] = [];
+		
+		for (var j = 0; j < b.length; ++j) {
+			// compute log(sqrt(|a|·|b|)) / (dist(a, b)+1))
+			function lengthAdjustedLevenshtein(a, b) {
+				return Math.log(a.length * b.length) / 2
+				     - Math.log(levenshtein(a, b) + 1.0);
+			}
+			
+			var fullDistance = lengthAdjustedLevenshtein(a[i], b[j]);
+			
+			// it is quite likely that users entering “pea...” expect
+			// “peace” to appear before “speak”
+			var minlen = Math.min(a[i].length, b[j].length);
+			var prefixDistance = lengthAdjustedLevenshtein(a[i].substr(0, minlen), b[j].substr(0, minlen));
+			similarityMatrix[i][j] = Math.min(fullDistance, prefixDistance);
+		}
+	}
+	
+	var totalSimilarity = 0.0;
+	
+	/* Test for availability of the munkres/hungarian algorithm to find the best similarity assignment */
+	var munkres;
+	if (typeof window != 'undefined' && window && window.Munkres && window.make_cost_matrix)
+		munkres = window;
+	
+	if (typeof require != 'undefined' && require)
+		try { munkres = require('munkres-js'); } catch (e) {}
+	
+	if (munkres) {
+		var m = new munkres.Munkres();
+		var indices = m.compute(munkres.make_cost_matrix(similarityMatrix));
+		
+		for (var k = 0; k < indices.length; ++k) {
+			var i = indices[k][0], j = indices[k][1];
+			totalSimilarity += similarityMatrix[i][j];
+		}
+	} else {
+		/* simply pick the available maximum of each row greedily */
+		var takenColumns = [];
+		for (var i = 0; i < similarityMatrix.length; ++i) {
+			var row = similarityMatrix[i];
+			var maxColumn = -1;
+			
+			for (var j = 0; j < row.length; ++j) {
+				if (takenColumns.indexOf(j) != -1)
+					continue;
+				if (maxColumn == -1 || row[j] > row[maxColumn])
+					maxColumn = j;
+			}
+			
+			takenColumns.push(maxColumn);
+			totalSimilarity += row[maxColumn];
+		}
+	}
+	
+	return totalSimilarity;
 }
 
 }
